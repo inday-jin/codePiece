@@ -1,0 +1,188 @@
+조합 일체선택형, 조합 분리선택형
+
+
+<p><input type="radio" name="req_opt_type" class="req_opt_type" checked value="0">사용안함 <input type="radio" name="req_opt_type" class="req_opt_type" value="1">조합 일체선택형 <input type="radio" name="req_opt_type" class="req_opt_type" value="2">조합 분리선택형</p>
+<div class="make_opt">
+  <table class="opt_tb">
+    <thead>
+      <tr>
+        <th>옵션명</th>
+        <th>옵션값</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th>
+          <input type="text" name="option[0][name]" class="adm_inp w100p opt_req_inp opt_name_inp" placeholder="옵션명">
+        </th>
+        <td>
+          <input type="text" name="option[0][opt]" class="adm_inp w100p opt_req_inp opt_val_inp" placeholder="세미클론(;)으로 구분">
+        </td>
+        <td>
+          <button type="button" class="opt_ctr_btn m">-</button>
+          <button type="button" class="opt_ctr_btn p dn" data-i="2">+</button>
+        </td>
+      </tr>
+      <tr>
+        <th>
+          <input type="text"  name="option[1][name]" class="adm_inp w100p opt_req_inp opt_name_inp" placeholder="옵션명">
+        </th>
+        <td>
+          <input type="text" name="option[1][opt]" class="adm_inp w100p opt_req_inp opt_val_inp" placeholder="세미클론(;)으로 구분">
+        </td>
+        <td>
+          <button type="button" class="opt_ctr_btn m">-</button>
+          <button type="button" class="opt_ctr_btn p" data-i="2">+</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="tac"><button type="button" class="opt_make_btn">옵션 조합</button></div>
+  <table class="opt_ret_tb">
+    <thead>
+      <tr>
+        <th>옵션명</th>
+        <th>추가금액</th>
+        <th>판매상태</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+  </table>
+</div>
+        
+      
+      
+      
+      
+        
+<script>
+$('body').on('change', '.req_opt_type', function(){
+  var $this = $(this);
+  var val = Number($this.val());
+  var canvas = $('.make_opt');
+  if(val !== 0){
+    canvas.addClass('db');
+  }else{
+    canvas.removeClass('db');
+  }
+})
+
+
+
+$('body').on('click', '.opt_ctr_btn', function(){
+  var $this = $(this);
+  var i = Number($this.attr('data-i'));
+  var tbody = $('.opt_tb tbody');
+  if($this.hasClass('p')){
+    // 추가
+    var appendCode = `<tr>
+      <th>
+        <input type="text"  name="option[${i}][name]" class="adm_inp w100p opt_req_inp" placeholder="옵션명">
+      </th>
+      <td>
+        <input type="text" name="option[${i}][opt]" class="adm_inp w100p opt_req_inp opt_val_inp" placeholder="세미클론(;)으로 구분">
+      </td>
+      <td>
+        <button type="button" class="opt_ctr_btn m">-</button>
+        <button type="button" class="opt_ctr_btn p" data-i="${i+1}">+</button>
+      </td>
+    </tr>`;
+    tbody.append(appendCode);
+    $this.addClass('dn');
+    $('.opt_ctr_btn.p').attr('data-i', i+1);
+  }else{
+    // 삭제
+    var trLength = $this.closest('tbody').find('tr').length-1;
+    if(trLength > 0){
+      $this.closest('tr').remove();
+      tbody.find('tr').eq(tbody.find('tr').length-1).find('.opt_ctr_btn.p').removeClass('dn');
+    }
+  }
+})
+
+function makeoptEl(optArr, ty){
+  var appendCode = '';
+  optArr.map((x, i) =>{
+    var name = ty === 1 ? x.join('/') : x.join('>');
+    appendCode = appendCode+`<tr>
+    <th>
+      ${name}
+      <input type="hidden" name="r_option[${i}][optName]" class="dn" value="${name}">
+    </th>
+    <td>
+      <select name="r_option[${i}][optPriSign]" class="adm_inp inp30">
+        <option value="1">+</option>
+        <option value="0">-</option>
+      </select>
+      <input type="text" name="r_option[${i}][optPri]" class="adm_inp inp80 only_num">
+    </td>
+    <td>
+      <select name="r_option[${i}][optSta]" class="adm_inp w100p">
+        <option value="1">판매함</option>
+        <option value="0">판매안함</option>
+      </select>
+    </td>
+    <td>
+      <button type="button" class="opt_ctr_btn m">-</button>
+    </td>
+  </tr>`;
+  });
+  $('.opt_ret_tb tbody').empty().append(appendCode);
+};
+
+$('body').on('click', '.opt_make_btn', function(e){
+  var $this = $(this);
+  var reqState = false;
+  $('.opt_req_inp').each(function(){
+    var el = $(this);
+    var elVal = el.val();
+    if(elVal === ''){
+      el.focus();
+      alert('항목을 입력해 주세요.');
+      reqState = false;
+      return false;
+    }else{
+      reqState = true;
+    }
+  });
+
+  if(reqState){
+    var optType = Number($('.req_opt_type:checked').val());
+    console.log(optType);
+    var tr = $('.opt_tb tbody tr');
+    var optSplit = [];
+    var optName = [];
+    var resArr = [];
+    tr.each(function(i){
+      var el = $(this);
+      var optOrg = el.find('.opt_val_inp').val();
+      optName[i] = el.find('.opt_name_inp').val();
+      optSplit[i] = optOrg.split(',');
+    });
+    if(optType === 1){
+      // 조합 일체선택형
+      var makeOpt = ([...arr]) => arr.reduce(
+        (arr, b) => arr.flatMap(
+          d => b.map(e => [d, e].flat())
+        )
+      );
+      var retOptArray = makeOpt(optSplit);
+      makeoptEl(retOptArray, 1);
+    }else if(optType === 2){
+      var retOptArray = [];
+      // 조합 분리선택형
+      optSplit.map((x,i) => {
+        x.map((y,i2) => {
+          retOptArray.push([optName[i], y]);
+        })
+      })
+      makeoptEl(retOptArray, 2);
+    }
+  }
+});
+
+</script>
